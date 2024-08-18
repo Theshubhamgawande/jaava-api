@@ -9,11 +9,22 @@ pipeline {
             }
         }
 
+        pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Clone the repository
+                git 'https://github.com/Theshubhamgawande/jaava-api.git'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 // Build the Docker image
                 script {
-                    docker.build('your-image-name:latest')
+                    docker.build('javaa-api:latest')
                 }
             }
         }
@@ -22,15 +33,34 @@ pipeline {
             steps {
                 // Run the Docker container
                 script {
-                    docker.run('your-image-name:latest', '-d -p 8080:8080')
+                    docker.image('javaa-api:latest').run('-d -p 8080:8080')
                 }
             }
         }
+    }
 
-        stage('Post-Build Actions') {
-            steps {
-                // Perform any post-build actions (e.g., notifications)
-            }
+    post {
+        always {
+            // Actions that run regardless of build success or failure
+            echo 'This will always run after the build.'
+        }
+        success {
+            // Actions to run if the build succeeds
+            echo 'Build succeeded!'
+            // Example: Send a success notification (customize as needed)
+            // mail to: 'you@example.com', subject: 'Build Succeeded', body: 'The Jenkins build was successful.'
+        }
+        failure {
+            // Actions to run if the build fails
+            echo 'Build failed!'
+            // Example: Send a failure notification (customize as needed)
+            // mail to: 'you@example.com', subject: 'Build Failed', body: 'The Jenkins build failed.'
+        }
+        cleanup {
+            // Cleanup actions, like stopping the Docker container
+            echo 'Cleaning up...'
+            // Example: Stop the container (if it's still running)
+            // sh 'docker stop $(docker ps -q --filter ancestor=javaa-api:latest)'
         }
     }
 }
